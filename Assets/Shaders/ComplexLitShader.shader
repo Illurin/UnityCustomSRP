@@ -43,14 +43,14 @@ Shader "Custom Render Pipeline/Complex Lit Shader"
         
         [Toggle(_PREMULTIPLY_ALPHA)] _PremultiplyAlpha("Premultiply Alpha", Float) = 0
 
-        [KeywordEnum(On, Clip, Dither, Off)] _Shadows ("Shadows", Float) = 0
-        [Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows ("Receive Shadows", Float) = 1
+        [KeywordEnum(On, Clip, Dither, Off)] _Shadows("Shadows", Float) = 0
+        [Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows("Receive Shadows", Float) = 1
     }
     SubShader
     {
         HLSLINCLUDE
-        #include "HLSL/Common.hlsl"
-        #include "HLSL/ComplexLitInput.hlsl"
+        #include "../ShaderLibrary/Common.hlsl"
+        #include "../ShaderLibrary/ComplexLitInput.hlsl"
         ENDHLSL
 
         Pass
@@ -85,7 +85,7 @@ Shader "Custom Render Pipeline/Complex Lit Shader"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "HLSL/ComplexLitPass.hlsl"
+            #include "ComplexLitPass.hlsl"
 
             ENDHLSL
         }
@@ -110,7 +110,7 @@ Shader "Custom Render Pipeline/Complex Lit Shader"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "HLSL/ShadowCasterPass.hlsl"
+            #include "ShadowCasterPass.hlsl"
 
             ENDHLSL
         }
@@ -129,7 +129,7 @@ Shader "Custom Render Pipeline/Complex Lit Shader"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "HLSL/MetaPass.hlsl"
+            #include "MetaPass.hlsl"
 
             ENDHLSL
         }

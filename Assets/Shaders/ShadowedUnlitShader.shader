@@ -19,8 +19,8 @@ Shader "Custom Render Pipeline/Shadowed Unlit Shader"
     SubShader
     {
         HLSLINCLUDE
-        #include "HLSL/Common.hlsl"
-        #include "HLSL/UnlitInput.hlsl"
+        #include "../ShaderLibrary/Common.hlsl"
+        #include "../ShaderLibrary/UnlitInput.hlsl"
         ENDHLSL
 
         Pass
@@ -37,7 +37,7 @@ Shader "Custom Render Pipeline/Shadowed Unlit Shader"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "HLSL/UnlitPass.hlsl"
+            #include "UnlitPass.hlsl"
 
             ENDHLSL
         }
@@ -61,7 +61,7 @@ Shader "Custom Render Pipeline/Shadowed Unlit Shader"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "HLSL/ShadowCasterPass.hlsl"
+            #include "ShadowCasterPass.hlsl"
 
             ENDHLSL
         }
@@ -80,7 +80,7 @@ Shader "Custom Render Pipeline/Shadowed Unlit Shader"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "HLSL/MetaPass.hlsl"
+            #include "MetaPass.hlsl"
 
             ENDHLSL
         }

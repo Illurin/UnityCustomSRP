@@ -24,8 +24,8 @@ Shader "Custom Render Pipeline/Lit Shader"
     SubShader
     {
         HLSLINCLUDE
-        #include "HLSL/Common.hlsl"
-        #include "HLSL/LitInput.hlsl"
+        #include "../ShaderLibrary/Common.hlsl"
+        #include "../ShaderLibrary/LitInput.hlsl"
         ENDHLSL
 
         Pass
@@ -50,7 +50,7 @@ Shader "Custom Render Pipeline/Lit Shader"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "HLSL/LitPass.hlsl"
+            #include "LitPass.hlsl"
 
             ENDHLSL
         }
@@ -69,7 +69,7 @@ Shader "Custom Render Pipeline/Lit Shader"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "HLSL/MetaPass.hlsl"
+            #include "MetaPass.hlsl"
 
             ENDHLSL
         }
