@@ -4,7 +4,7 @@
 struct Surface
 {
     // Albedo properties
-    float3 color;
+    float3 albedo;
     float  alpha;
 
     // Transform properties

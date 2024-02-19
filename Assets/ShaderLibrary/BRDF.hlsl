@@ -21,12 +21,12 @@ BRDF GetBRDF(Surface surface, bool applyAlphaToDiffuse = false)
     
     // Calculate diffuse
     float oneMinusReflectivity = (1.0f - MIN_REFLECTIVITY) * (1.0f - surface.metallic);
-    brdf.diffuse = surface.color * oneMinusReflectivity;
+    brdf.diffuse = surface.albedo * oneMinusReflectivity;
     if (applyAlphaToDiffuse)
         brdf.diffuse *= surface.alpha;
 
     // Calculate specular
-    brdf.specular = lerp(MIN_REFLECTIVITY, surface.color, surface.metallic);
+    brdf.specular = lerp(MIN_REFLECTIVITY, surface.albedo, surface.metallic);
     
     // Calculate roughness
     brdf.perceptualRoughness =

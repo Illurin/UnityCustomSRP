@@ -209,7 +209,7 @@ public partial class CameraRenderer
         }
 
         cmd.ClearRenderTarget(clearFlags <= CameraClearFlags.Depth,
-                              clearFlags == CameraClearFlags.Color,
+                              clearFlags <= CameraClearFlags.Color,
                               clearFlags == CameraClearFlags.Color ? 
                               camera.backgroundColor.linear : Color.clear);
 

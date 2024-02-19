@@ -42,7 +42,7 @@ float4 frag(Varyings input) : SV_TARGET
 
     Surface surface;
     ZERO_INITIALIZE(Surface, surface);
-    surface.color      = finalColor.rgb;
+    surface.albedo     = finalColor.rgb;
     surface.metallic   = GetMetallic(config);
     surface.smoothness = GetSmoothness(config);
 

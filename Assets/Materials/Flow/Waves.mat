@@ -7,13 +7,13 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: DirectionalFlow
-  m_Shader: {fileID: 4800000, guid: e0280e2d39d998b418c69102c28ac272, type: 3}
+  m_Name: Waves
+  m_Shader: {fileID: 4800000, guid: 501a5a885f2b54a40869469b0c56daaf, type: 3}
   m_ValidKeywords:
-  - _DUAL_GRID
   - _RECEIVE_SHADOWS
   m_InvalidKeywords:
   - _DERIV_HEIGHT_MAP
+  - _DUAL_GRID
   - _SHADOWS_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
@@ -25,7 +25,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 1ae9a8856cc27e44993bad8a9b59969a, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -82,6 +82,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Amplitude: 10
     - _BumpScale: 1
     - _Clipping: 0
     - _Cutoff: 0.5
@@ -110,13 +111,14 @@ Material:
     - _Smoothness: 0.7
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _Speed: 0.5
+    - _Speed: 10
     - _SrcBlend: 1
     - _Tiling: 3
     - _TilingModulated: 50
     - _UJump: 0
     - _UVSec: 0
     - _VJump: 0
+    - _Wavelength: 20
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.3058823, g: 0.5137254, b: 0.6627451, a: 1}

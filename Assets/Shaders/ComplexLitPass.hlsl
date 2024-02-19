@@ -82,7 +82,7 @@ float4 frag(Varyings input) : SV_TARGET
 
     Surface surface;
     ZERO_INITIALIZE(Surface, surface);
-    surface.color              = finalColor.rgb;
+    surface.albedo             = finalColor.rgb;
     surface.alpha              = finalColor.a;
     surface.posW               = input.posW;
     surface.depth              = -TransformWorldToView(input.posW).z;
