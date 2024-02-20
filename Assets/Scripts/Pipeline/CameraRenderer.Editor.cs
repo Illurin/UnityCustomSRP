@@ -5,10 +5,10 @@ using UnityEngine.Rendering;
 
 partial class CameraRenderer
 {
-    partial void PrepareCommandBuffer();
+    //partial void PrepareCommandBuffer();
     partial void DrawGizmosBeforeEffects();
     partial void DrawGizmosAfterEffects();
-    partial void DrawUnsupportedShaders();
+    public partial void DrawUnsupportedShaders();
     partial void PrepareForSceneWindow();
 
 #if UNITY_EDITOR
@@ -26,17 +26,17 @@ partial class CameraRenderer
     // Error material
     static Material errorMaterial;
 
-    string sampleName;
+    //string sampleName;
 
-    partial void PrepareCommandBuffer()
-    {
-        // Check GC alloc
-        Profiler.BeginSample("Editor Only");
-        cmd.name = sampleName = camera.name;
-        Profiler.EndSample();
-    }
+    //partial void PrepareCommandBuffer()
+    //{
+    //    // Check GC alloc
+    //    Profiler.BeginSample("Editor Only");
+    //    cmd.name = sampleName = camera.name;
+    //    Profiler.EndSample();
+    //}
 
-    partial void DrawUnsupportedShaders()
+    public partial void DrawUnsupportedShaders()
     {
         // Prepare error material
         if (errorMaterial == null)
@@ -98,9 +98,9 @@ partial class CameraRenderer
         }
     }
 
-#else
+//#else
 
-    const string sampleName = cmdName;
+//    const string sampleName = cmdName;
     
 #endif
 }

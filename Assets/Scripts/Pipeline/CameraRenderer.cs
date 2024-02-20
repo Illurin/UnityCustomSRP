@@ -1,14 +1,16 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
 public partial class CameraRenderer
 {
     ScriptableRenderContext context;
-    Camera camera;
+    public Camera camera;
 
-    const string cmdName = "Render Camera";
-    CommandBuffer cmd = new CommandBuffer() { name = cmdName };
+    //const string cmdName = "Render Camera";
+    //CommandBuffer cmd = new CommandBuffer() { name = cmdName };
+    CommandBuffer cmd;
 
     CullingResults cullingResults;
 
@@ -16,14 +18,14 @@ public partial class CameraRenderer
     static ShaderTagId unlitShaderTagId = new ShaderTagId("SRPDefaultUnlit"),
                        litShaderTagId = new ShaderTagId("CustomLit");
 
-    static int framebufferSizeId = Shader.PropertyToID("_FramebufferSize"),
-               colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"),
-               depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
-               colorTextureId = Shader.PropertyToID("_CameraColorTexture"),
-               depthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
-               sourceTextureId = Shader.PropertyToID("_SourceTexture"),
-               srcBlendId = Shader.PropertyToID("_CameraSrcBlend"),
-               dstBlendId = Shader.PropertyToID("_CameraDstBlend");
+    public static int framebufferSizeId = Shader.PropertyToID("_FramebufferSize"),
+                      colorAttachmentId = Shader.PropertyToID("_CameraColorAttachment"),
+                      depthAttachmentId = Shader.PropertyToID("_CameraDepthAttachment"),
+                      colorTextureId = Shader.PropertyToID("_CameraColorTexture"),
+                      depthTextureId = Shader.PropertyToID("_CameraDepthTexture"),
+                      sourceTextureId = Shader.PropertyToID("_SourceTexture"),
+                      srcBlendId = Shader.PropertyToID("_CameraSrcBlend"),
+                      dstBlendId = Shader.PropertyToID("_CameraDstBlend");
 
     // Lighting
     Lighting lighting = new Lighting();
@@ -42,7 +44,7 @@ public partial class CameraRenderer
 
     // Settings
     bool useHDR, useScaledRendering;
-    bool useColorTexture, useDepthTexture, useIntermediateBuffer;
+    public bool useColorTexture, useDepthTexture, useIntermediateBuffer;
     static bool copyTextureSupported =
         SystemInfo.copyTextureSupport > CopyTextureSupport.None;    // "false" for WebGL 2.0
 
@@ -73,16 +75,29 @@ public partial class CameraRenderer
         CoreUtils.Destroy(missingTexture);
     }
 
-    public void Render(ScriptableRenderContext renderContext, Camera camera, FramebufferSettings framebufferSettings,
+    public void Render(RenderGraph renderGraph, ScriptableRenderContext renderContext, Camera camera, FramebufferSettings framebufferSettings,
                        bool enableDynamicBatching, bool enableGPUInstancing, bool useLightsPerObject,
                        ShadowSettings shadowSettings, PostEffectsSettings postEffectsSettings, int colorLUTResolution)
     {
         context = renderContext;
         this.camera = camera;
 
-        // Get camera settings
-        var cameraComponent = camera.GetComponent<CustomRenderPipelineCamera>();
-        var cameraSettings = cameraComponent ? cameraComponent.Settings : defaultCameraSettings;
+
+        // Get camera settings and sampler
+        ProfilingSampler cameraSampler;
+        CameraSettings cameraSettings;
+        if (camera.TryGetComponent(out CustomRenderPipelineCamera cameraComponent))
+        {
+            cameraSampler = cameraComponent.Sampler;
+            cameraSettings = cameraComponent.Settings;
+        }
+        else
+        {
+            cameraSampler = ProfilingSampler.Get(camera.cameraType);
+            cameraSettings = defaultCameraSettings;
+        }
+        //var cameraComponent = camera.GetComponent<CustomRenderPipelineCamera>();
+        //var cameraSettings = cameraComponent ? cameraComponent.Settings : defaultCameraSettings;
 
         if (cameraSettings.overridePostEffects)
         {
@@ -93,7 +108,7 @@ public partial class CameraRenderer
         var renderScale = cameraSettings.GetRenderScale(framebufferSettings.renderScale);
         useScaledRendering = renderScale < 0.99f || renderScale > 1.01f;
 
-        PrepareCommandBuffer();
+        //PrepareCommandBuffer();
         PrepareForSceneWindow();
 
         // Get the real framebuffer size
@@ -114,7 +129,7 @@ public partial class CameraRenderer
 
         // Setup post effects stack
         framebufferSettings.fxaa.enabled &= cameraSettings.allowFXAA;
-        postEffectsStack.Setup(context, camera, framebufferSize, postEffectsSettings,
+        postEffectsStack.Setup(/*context, */camera, framebufferSize, postEffectsSettings,
                                cameraSettings.keepAlpha, useHDR,
                                colorLUTResolution, cameraSettings.finalBlendMode,
                                framebufferSettings.bicubicRescaling,
@@ -137,47 +152,84 @@ public partial class CameraRenderer
         useIntermediateBuffer = useScaledRendering || useColorTexture || useDepthTexture ||
                                 postEffectsStack.IsActive;
 
-        cmd.BeginSample(cmdName);
-        cmd.SetGlobalTexture(colorTextureId, missingTexture);
-        cmd.SetGlobalTexture(depthTextureId, missingTexture);
-        cmd.SetGlobalVector(framebufferSizeId, new Vector4(
-            1.0f / framebufferSize.x, 1.0f / framebufferSize.y,
-            framebufferSize.x, framebufferSize.y
-        ));
-        ExecuteCommands();
+        //cmd.BeginSample(cmdName);
+        //ExecuteCommands();
 
         // Setup lighting and shadows
-        lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject,
-                       cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
-        cmd.EndSample(cmdName);
+        //lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject,
+        //               cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
+        //cmd.EndSample(cmdName);
 
         // Regular rendering
-        Setup();
+        //Setup();
 
-        DrawGeometry(enableDynamicBatching, enableGPUInstancing, useLightsPerObject,
-                     cameraSettings.renderingLayerMask);
-        DrawUnsupportedShaders();
+        //DrawVisibleGeometry(enableDynamicBatching, enableGPUInstancing, useLightsPerObject,
+        //                    cameraSettings.renderingLayerMask);
+        //DrawUnsupportedShaders();
 
-        DrawGizmosBeforeEffects();
+        //DrawGizmosBeforeEffects();
 
-        if (postEffectsStack.IsActive)
+        //if (postEffectsStack.IsActive)
+        //{
+        //    postEffectsStack.Render(colorAttachmentId);
+        //}
+        //else if (useIntermediateBuffer)
+        //{
+        //    // Avoid ignoring the viewport and final blend modes
+        //    DrawFinal(cameraSettings.finalBlendMode);
+        //    ExecuteCommands();
+        //}
+
+        //DrawGizmosAfterEffects();
+
+        // Record and execute render graph
+        var renderGraphParameters = new RenderGraphParameters
         {
-            postEffectsStack.Render(colorAttachmentId);
-        }
-        else if (useIntermediateBuffer)
-        {
-            // Avoid ignoring the viewport and final blend modes
-            DrawFinal(cameraSettings.finalBlendMode);
-            ExecuteCommands();
-        }
+            commandBuffer = CommandBufferPool.Get(),
+            currentFrameIndex = Time.frameCount,
+            executionName = cameraSampler.name,
+            scriptableRenderContext = context
+        };
+        // Set the buffer to the same used for the render graph
+        cmd = renderGraphParameters.commandBuffer;
 
-        DrawGizmosAfterEffects();
+        // What's used will be disposed of implicitly when the code execution leaves that scope
+        using (renderGraph.RecordAndExecute(renderGraphParameters))
+        {
+            // Add an extra profiling scope at the top level of our render graph
+            using var _ = new RenderGraphProfilingScope(renderGraph, cameraSampler);
+            
+            // Add passes here
+            LightingPass.Record(renderGraph, lighting,
+                                cullingResults, shadowSettings, useLightsPerObject,
+                                cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
+
+            SetupPass.Record(renderGraph, this);
+
+            VisibleGeometryPass.Record(renderGraph, this,
+                                       enableDynamicBatching, enableGPUInstancing, useLightsPerObject,
+                                       cameraSettings.renderingLayerMask);
+
+            UnsupportedShadersPass.Record(renderGraph, this);
+
+            if (postEffectsStack.IsActive)
+            {
+                PostEffectsPass.Record(renderGraph, postEffectsStack);
+            }
+            else if (useIntermediateBuffer)
+            {
+                FinalPass.Record(renderGraph, this, cameraSettings.finalBlendMode);
+            }
+
+            GizmosPass.Record(renderGraph, this);
+        }
 
         Cleanup();
         Submit();
+        CommandBufferPool.Release(renderGraphParameters.commandBuffer);
     }
 
-    void Setup()
+    public void Setup()
     {
         context.SetupCameraProperties(camera);
 
@@ -213,7 +265,13 @@ public partial class CameraRenderer
                               clearFlags == CameraClearFlags.Color ? 
                               camera.backgroundColor.linear : Color.clear);
 
-        cmd.BeginSample(sampleName);
+        //cmd.BeginSample(sampleName);
+        cmd.SetGlobalTexture(colorTextureId, missingTexture);
+        cmd.SetGlobalTexture(depthTextureId, missingTexture);
+        cmd.SetGlobalVector(framebufferSizeId, new Vector4(
+            1.0f / framebufferSize.x, 1.0f / framebufferSize.y,
+            framebufferSize.x, framebufferSize.y
+        ));
         ExecuteCommands();
     }
 
@@ -233,8 +291,10 @@ public partial class CameraRenderer
         }
     }
 
-    void DrawGeometry(bool enableDynamicBatching, bool enableGPUInstancing, bool useLightsPerObject, int renderingLayerMask)
+    public void DrawVisibleGeometry(bool enableDynamicBatching, bool enableGPUInstancing, bool useLightsPerObject, int renderingLayerMask)
     {
+        ExecuteCommands();
+
         // Draw opaque geometries
         var sortingSettings = new SortingSettings(camera);
         sortingSettings.criteria = SortingCriteria.CommonOpaque;
@@ -276,7 +336,7 @@ public partial class CameraRenderer
         context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
     }
 
-    void Draw(RenderTargetIdentifier src, RenderTargetIdentifier dst, bool isDepth = false)
+    public void Draw(RenderTargetIdentifier src, RenderTargetIdentifier dst, bool isDepth = false)
     {
         // Perform a final copy to the camera's target
         cmd.SetGlobalTexture(sourceTextureId, src);
@@ -284,7 +344,7 @@ public partial class CameraRenderer
         cmd.DrawProcedural(Matrix4x4.identity, material, isDepth ? 1 : 0, MeshTopology.Triangles, 3);
     }
 
-    void DrawFinal(CameraSettings.FinalBlendMode finalBlendMode)
+    public void DrawFinal(CameraSettings.FinalBlendMode finalBlendMode)
     {
         // Set final blend modes
         cmd.SetGlobalFloat(srcBlendId, (float)finalBlendMode.source);
@@ -309,12 +369,12 @@ public partial class CameraRenderer
 
     void Submit()
     {
-        cmd.EndSample(sampleName);
+        //cmd.EndSample(sampleName);
         ExecuteCommands();
         context.Submit();
     }
 
-    void ExecuteCommands()
+    public void ExecuteCommands()
     {
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();

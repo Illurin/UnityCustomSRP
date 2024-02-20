@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Networking.Types;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -28,8 +29,9 @@ public partial class PostEffectsStack
         FXAAWithLuma
     }
 
-    const string cmdName = "Post Effects";
-    CommandBuffer cmd = new CommandBuffer { name = cmdName };
+    //const string cmdName = "Post Effects";
+    //CommandBuffer cmd = new CommandBuffer { name = cmdName };
+    CommandBuffer cmd;
 
     ScriptableRenderContext context;
     Camera camera;
@@ -121,13 +123,13 @@ public partial class PostEffectsStack
         }
     }
 
-    public void Setup(ScriptableRenderContext context, Camera camera, Vector2Int framebufferSize,
+    public void Setup(/*ScriptableRenderContext context, */Camera camera, Vector2Int framebufferSize,
                       PostEffectsSettings settings, bool keepAlpha, bool useHDR, int colorLUTResolution,
                       CameraSettings.FinalBlendMode finalBlendMode,
                       FramebufferSettings.BicubicRescalingMode bicubicRescaling,
                       FramebufferSettings.FXAA fxaa)
     {
-        this.context = context;
+        //this.context = context;
         this.camera = camera;
         this.framebufferSize = framebufferSize;
         this.settings = camera.cameraType <= CameraType.SceneView ? settings : null;
@@ -140,8 +142,10 @@ public partial class PostEffectsStack
         ApplySceneViewState();
     }
 
-    public void Render(int sourceId)
+    public void Render(RenderGraphContext context, int sourceId)
     {
+        cmd = context.cmd;
+
         if (PerformBloom(sourceId))
         {
             PerformColorGradingAndToneMapping(bloomResultId);
@@ -151,7 +155,7 @@ public partial class PostEffectsStack
         {
             PerformColorGradingAndToneMapping(sourceId);
         }
-        context.ExecuteCommandBuffer(cmd);
+        context.renderContext.ExecuteCommandBuffer(cmd);
         cmd.Clear();
     }
 

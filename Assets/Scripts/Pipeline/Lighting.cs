@@ -2,12 +2,14 @@ using System;
 using Unity.Collections;
 using UnityEditor.Rendering.LookDev;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
 public class Lighting
 {
-    const string cmdName = "Lighting";
-    CommandBuffer cmd = new CommandBuffer { name = cmdName };
+    //const string cmdName = "Lighting";
+    //CommandBuffer cmd = new CommandBuffer { name = cmdName };
+    CommandBuffer cmd;
 
     const int maxDirLightCount = 4, maxOtherLightCount = 64;
 
@@ -44,21 +46,20 @@ public class Lighting
     // Shader variant for lights per object
     static string lightsPerObjectKeyword = "_LIGHTS_PER_OBJECT";
 
-    public void Setup(ScriptableRenderContext context, CullingResults cullingResults,
+    public void Setup(RenderGraphContext context, CullingResults cullingResults,
                       ShadowSettings shadowSettings, bool useLightsPerObject, int renderingLayerMask)
     {
+        cmd = context.cmd;
         this.cullingResults = cullingResults;
         
-        cmd.BeginSample(cmdName);
-        context.ExecuteCommandBuffer(cmd);
-        cmd.Clear();
+        //cmd.BeginSample(cmdName);
 
         shadows.Setup(context, cullingResults, shadowSettings);
         SetupLights(useLightsPerObject, renderingLayerMask);
         shadows.Render();
 
-        cmd.EndSample(cmdName);
-        context.ExecuteCommandBuffer(cmd);
+        //cmd.EndSample(cmdName);
+        context.renderContext.ExecuteCommandBuffer(cmd);
         cmd.Clear();
     }
 

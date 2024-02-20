@@ -1,11 +1,13 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
 public class Shadows
 {
-    const string cmdName = "Shadows";
-    CommandBuffer cmd = new CommandBuffer { name = cmdName };
+    //const string cmdName = "Shadows";
+    //CommandBuffer cmd = new CommandBuffer { name = cmdName };
+    CommandBuffer cmd;
 
     ScriptableRenderContext context;
     CullingResults cullingResults;
@@ -91,10 +93,11 @@ public class Shadows
         "_SHADOW_MASK_DISTANCE"
     };
 
-    public void Setup(ScriptableRenderContext context, CullingResults cullingResults,
+    public void Setup(RenderGraphContext context, CullingResults cullingResults,
                       ShadowSettings settings)
     {
-        this.context = context;
+        cmd = context.cmd;
+        this.context = context.renderContext;
         this.cullingResults = cullingResults;
         this.settings = settings;
         shadowedDirectionalLightCount = shadowedOtherLightCount = 0;
@@ -214,7 +217,7 @@ public class Shadows
             cmd.SetGlobalTexture(otherShadowAtlasId, dirShadowAtlasId);
         }
 
-        cmd.BeginSample(cmdName);
+        //cmd.BeginSample(cmdName);
 
         // Set shadow mask
         SetKeywords(shadowMaskKeywords, useShadowMask ?
@@ -233,7 +236,7 @@ public class Shadows
                                         1.0f / (1.0f - cascadeFade * cascadeFade)));
 
         cmd.SetGlobalVector(shadowAtlasSizeId, atlasSizes);
-        cmd.EndSample(cmdName);
+        //cmd.EndSample(cmdName);
         ExecuteCommands();
     }
     void SetCascadeData(int index, Vector4 cullingSphere, float tileSize)
@@ -351,8 +354,7 @@ public class Shadows
         var tileSize = atlasSize / split;
 
         // Render shadows
-        cmd.BeginSample(cmdName);
-        ExecuteCommands();
+        cmd.BeginSample("Directional Shadows");
 
         // Enable clamping for shadow pancaking
         cmd.SetGlobalFloat(shadowPancakingId, 1.0f);
@@ -372,7 +374,7 @@ public class Shadows
         SetKeywords(directionalFilterKeywords, (int)settings.directional.filterMode - 1);
         SetKeywords(cascadeBlendKeywords, (int)settings.directional.cascadeBlend - 1);
 
-        cmd.EndSample(cmdName);
+        cmd.EndSample("Directional Shadows");
         ExecuteCommands();
     }
 
@@ -498,7 +500,7 @@ public class Shadows
         var tileSize = atlasSize / split;
 
         // Render shadows
-        cmd.BeginSample(cmdName);
+        cmd.BeginSample("Other Shadows");
         ExecuteCommands();
 
         // Turn off clamping, for pancaking isn't appropriate
@@ -524,7 +526,7 @@ public class Shadows
 
         SetKeywords(otherFilterKeywords, (int)settings.other.filterMode - 1);
 
-        cmd.EndSample(cmdName);
+        cmd.EndSample("Other Shadows");
         ExecuteCommands();
     }
 

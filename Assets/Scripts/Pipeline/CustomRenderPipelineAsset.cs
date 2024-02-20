@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.UI;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 public partial class CustomRenderPipeline : RenderPipeline
 {
@@ -15,6 +15,9 @@ public partial class CustomRenderPipeline : RenderPipeline
     PostEffectsSettings postEffectsSettings;
 
     int colorLUTResolution;
+
+    // Upgrade to render graph API
+    readonly RenderGraph renderGraph = new("Custom SRP Render Graph");
 
     public CustomRenderPipeline(FramebufferSettings framebufferSettings,
                                 bool enableDynamicBatching, bool enableGPUInstancing, bool enableSRPBatcher,
@@ -44,10 +47,11 @@ public partial class CustomRenderPipeline : RenderPipeline
     {
         foreach (var camera in cameras)
         {
-            renderer.Render(renderContext, camera, framebufferSettings,
+            renderer.Render(renderGraph, renderContext, camera, framebufferSettings,
                             enableDynamicBatching, enableGPUInstancing, useLightsPerObject,
                             shadowSettings, postEffectsSettings, colorLUTResolution);
         }
+        renderGraph.EndFrame();
     }
 
     protected override void Dispose(bool disposing)
@@ -55,6 +59,7 @@ public partial class CustomRenderPipeline : RenderPipeline
         base.Dispose(disposing);
         DisposeForEditor();
         renderer.Dispose();
+        renderGraph.Cleanup();
     }
 }
 
