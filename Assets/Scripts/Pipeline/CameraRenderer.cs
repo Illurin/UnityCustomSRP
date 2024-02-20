@@ -154,8 +154,8 @@ public partial class CameraRenderer
         // Regular rendering
         Setup();
 
-        DrawGeometry(enableDynamicBatching, enableGPUInstancing, useLightsPerObject,
-                     cameraSettings.renderingLayerMask);
+        DrawVisibleGeometry(enableDynamicBatching, enableGPUInstancing, useLightsPerObject,
+                            cameraSettings.renderingLayerMask);
         DrawUnsupportedShaders();
 
         DrawGizmosBeforeEffects();
@@ -233,7 +233,7 @@ public partial class CameraRenderer
         }
     }
 
-    void DrawGeometry(bool enableDynamicBatching, bool enableGPUInstancing, bool useLightsPerObject, int renderingLayerMask)
+    void DrawVisibleGeometry(bool enableDynamicBatching, bool enableGPUInstancing, bool useLightsPerObject, int renderingLayerMask)
     {
         // Draw opaque geometries
         var sortingSettings = new SortingSettings(camera);

@@ -352,7 +352,6 @@ public class Shadows
 
         // Render shadows
         cmd.BeginSample(cmdName);
-        ExecuteCommands();
 
         // Enable clamping for shadow pancaking
         cmd.SetGlobalFloat(shadowPancakingId, 1.0f);
@@ -499,7 +498,6 @@ public class Shadows
 
         // Render shadows
         cmd.BeginSample(cmdName);
-        ExecuteCommands();
 
         // Turn off clamping, for pancaking isn't appropriate
         cmd.SetGlobalFloat(shadowPancakingId, 0.0f);
