@@ -8,23 +8,22 @@ partial class CameraRenderer
     //partial void PrepareCommandBuffer();
     partial void DrawGizmosBeforeEffects();
     partial void DrawGizmosAfterEffects();
-    public partial void DrawUnsupportedShaders();
+    //public partial void DrawUnsupportedShaders();
     partial void PrepareForSceneWindow();
 
 #if UNITY_EDITOR
 
-    static ShaderTagId[] legacyShaderTagIds =
-    {
-        new ShaderTagId("Always"),
-        new ShaderTagId("ForwardBase"),
-        new ShaderTagId("PrepassBase"),
-        new ShaderTagId("Vertex"),
-        new ShaderTagId("VertexLM"),
-        new ShaderTagId("VertexLMRGBM")
-    };
+    //static ShaderTagId[] legacyShaderTagIds =
+    //{
+    //    new ShaderTagId("Always"),
+    //    new ShaderTagId("ForwardBase"),
+    //    new ShaderTagId("PrepassBase"),
+    //    new ShaderTagId("Vertex"),
+    //    new ShaderTagId("VertexLM"),
+    //    new ShaderTagId("VertexLMRGBM")
+    //};
 
-    // Error material
-    static Material errorMaterial;
+    //static Material errorMaterial;
 
     //string sampleName;
 
@@ -36,54 +35,54 @@ partial class CameraRenderer
     //    Profiler.EndSample();
     //}
 
-    public partial void DrawUnsupportedShaders()
-    {
-        // Prepare error material
-        if (errorMaterial == null)
-        {
-            errorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
-        }
+    //public partial void DrawUnsupportedShaders()
+    //{
+    //    // Prepare error material
+    //    if (errorMaterial == null)
+    //    {
+    //        errorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
+    //    }
 
-        var drawingSettings = new DrawingSettings(legacyShaderTagIds[0], new SortingSettings(camera));
-        for (int i = 1; i < legacyShaderTagIds.Length; ++i)
-        {
-            drawingSettings.SetShaderPassName(i, legacyShaderTagIds[i]);
-        }
+    //    var drawingSettings = new DrawingSettings(legacyShaderTagIds[0], new SortingSettings(camera));
+    //    for (int i = 1; i < legacyShaderTagIds.Length; ++i)
+    //    {
+    //        drawingSettings.SetShaderPassName(i, legacyShaderTagIds[i]);
+    //    }
 
-        drawingSettings.overrideMaterial = errorMaterial;
+    //    drawingSettings.overrideMaterial = errorMaterial;
 
-        var filteringSettings = FilteringSettings.defaultValue;
+    //    var filteringSettings = FilteringSettings.defaultValue;
 
-        context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
-    }
+    //    context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
+    //}
 
-    partial void DrawGizmosBeforeEffects()
-    {
-        if (Handles.ShouldRenderGizmos())
-        {
-            // Make our gizmos depth-aware
-            if (useIntermediateBuffer)
-            {
-                Draw(depthAttachmentId, BuiltinRenderTextureType.CameraTarget, true);
-                ExecuteCommands();
-            }
-            context.DrawGizmos(camera, GizmoSubset.PreImageEffects);
-        }
-    }
+    //partial void DrawGizmosBeforeEffects()
+    //{
+    //    if (Handles.ShouldRenderGizmos())
+    //    {
+    //        // Make our gizmos depth-aware
+    //        if (useIntermediateBuffer)
+    //        {
+    //            Draw(depthAttachmentId, BuiltinRenderTextureType.CameraTarget, true);
+    //            ExecuteCommands();
+    //        }
+    //        context.DrawGizmos(camera, GizmoSubset.PreImageEffects);
+    //    }
+    //}
 
-    partial void DrawGizmosAfterEffects()
-    {
-        if (Handles.ShouldRenderGizmos())
-        {
-            // Make our gizmos depth-aware
-            if (postEffectsStack.IsActive)
-            {
-                Draw(depthAttachmentId, BuiltinRenderTextureType.CameraTarget, true);
-                ExecuteCommands();
-            }
-            context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
-        }
-    }
+    //partial void DrawGizmosAfterEffects()
+    //{
+    //    if (Handles.ShouldRenderGizmos())
+    //    {
+    //        // Make our gizmos depth-aware
+    //        if (postEffectsStack.IsActive)
+    //        {
+    //            Draw(depthAttachmentId, BuiltinRenderTextureType.CameraTarget, true);
+    //            ExecuteCommands();
+    //        }
+    //        context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
+    //    }
+    //}
 
     partial void PrepareForSceneWindow()
     {

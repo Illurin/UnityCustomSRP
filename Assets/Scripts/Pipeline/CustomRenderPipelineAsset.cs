@@ -9,25 +9,26 @@ public partial class CustomRenderPipeline : RenderPipeline
 
     FramebufferSettings framebufferSettings;
 
-    bool enableDynamicBatching, enableGPUInstancing, useLightsPerObject;
+    //bool enableDynamicBatching, enableGPUInstancing, useLightsPerObject;
+    bool useLightsPerObject;
     ShadowSettings shadowSettings;
 
     PostEffectsSettings postEffectsSettings;
-
+    
     int colorLUTResolution;
 
     // Upgrade to render graph API
     readonly RenderGraph renderGraph = new("Custom SRP Render Graph");
 
     public CustomRenderPipeline(FramebufferSettings framebufferSettings,
-                                bool enableDynamicBatching, bool enableGPUInstancing, bool enableSRPBatcher,
+                                /*bool enableDynamicBatching, bool enableGPUInstancing, */bool enableSRPBatcher,
                                 bool useLightsPerObject, ShadowSettings shadowSettings,
                                 PostEffectsSettings postEffectsSettings, int colorLUTResolution,
                                 Shader cameraRendererShader)
     {
         this.framebufferSettings = framebufferSettings;
-        this.enableDynamicBatching = enableDynamicBatching;
-        this.enableGPUInstancing = enableGPUInstancing;
+        //this.enableDynamicBatching = enableDynamicBatching;
+        //this.enableGPUInstancing = enableGPUInstancing;
         GraphicsSettings.useScriptableRenderPipelineBatching = enableSRPBatcher;
         GraphicsSettings.lightsUseLinearIntensity = true;
         this.useLightsPerObject = useLightsPerObject;
@@ -48,7 +49,7 @@ public partial class CustomRenderPipeline : RenderPipeline
         foreach (var camera in cameras)
         {
             renderer.Render(renderGraph, renderContext, camera, framebufferSettings,
-                            enableDynamicBatching, enableGPUInstancing, useLightsPerObject,
+                            /*enableDynamicBatching, enableGPUInstancing, */useLightsPerObject,
                             shadowSettings, postEffectsSettings, colorLUTResolution);
         }
         renderGraph.EndFrame();
@@ -80,8 +81,7 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
     };
 
     [SerializeField]
-    bool enableDynamicBatching = true, enableGPUInstancing = true, enableSRPBatcher = true,
-         useLightsPerObject = true;
+    bool enableSRPBatcher = true, useLightsPerObject = true;
 
     [SerializeField]
     ShadowSettings shadowSettings = default;
@@ -98,9 +98,16 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
     [SerializeField]
     Shader cameraRendererShader = default;
 
+    [Header("Deprecated Settings")]
+    [SerializeField, Tooltip("Dynamic batching is no longer used.")]
+    bool enableDynamicBatching;
+
+    [SerializeField, Tooltip("GPU instancing is always enabled.")]
+    bool enableGPUInstancing;
+
     protected override RenderPipeline CreatePipeline()
     {
-        return new CustomRenderPipeline(framebufferSettings, enableDynamicBatching, enableGPUInstancing, enableSRPBatcher,
+        return new CustomRenderPipeline(framebufferSettings, /*enableDynamicBatching, enableGPUInstancing, */enableSRPBatcher,
                                         useLightsPerObject, shadowSettings, postEffectsSettings,
                                         (int)colorLUTResolution, cameraRendererShader);
     }

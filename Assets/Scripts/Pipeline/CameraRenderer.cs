@@ -76,7 +76,7 @@ public partial class CameraRenderer
     }
 
     public void Render(RenderGraph renderGraph, ScriptableRenderContext renderContext, Camera camera, FramebufferSettings framebufferSettings,
-                       bool enableDynamicBatching, bool enableGPUInstancing, bool useLightsPerObject,
+                       /*bool enableDynamicBatching, bool enableGPUInstancing, */bool useLightsPerObject,
                        ShadowSettings shadowSettings, PostEffectsSettings postEffectsSettings, int colorLUTResolution)
     {
         context = renderContext;
@@ -188,6 +188,7 @@ public partial class CameraRenderer
             commandBuffer = CommandBufferPool.Get(),
             currentFrameIndex = Time.frameCount,
             executionName = cameraSampler.name,
+            rendererListCulling = true,
             scriptableRenderContext = context
         };
         // Set the buffer to the same used for the render graph
@@ -206,11 +207,22 @@ public partial class CameraRenderer
 
             SetupPass.Record(renderGraph, this);
 
-            VisibleGeometryPass.Record(renderGraph, this,
-                                       enableDynamicBatching, enableGPUInstancing, useLightsPerObject,
-                                       cameraSettings.renderingLayerMask);
+            // Draw opaque geometries
+            GeometryPass.Record(renderGraph, camera, cullingResults,
+                                useLightsPerObject, cameraSettings.renderingLayerMask, true);
 
-            UnsupportedShadersPass.Record(renderGraph, this);
+            SkyboxPass.Record(renderGraph, camera);
+
+            if (useColorTexture || useDepthTexture)
+            {
+                CopyAttachmentsPass.Record(renderGraph, this);
+            }
+
+            // Draw transparent geometries
+            GeometryPass.Record(renderGraph, camera, cullingResults,
+                                useLightsPerObject, cameraSettings.renderingLayerMask, false);
+
+            UnsupportedShadersPass.Record(renderGraph, camera, cullingResults);
 
             if (postEffectsStack.IsActive)
             {
@@ -291,50 +303,50 @@ public partial class CameraRenderer
         }
     }
 
-    public void DrawVisibleGeometry(bool enableDynamicBatching, bool enableGPUInstancing, bool useLightsPerObject, int renderingLayerMask)
-    {
-        ExecuteCommands();
+    //public void DrawVisibleGeometry(bool enableDynamicBatching, bool enableGPUInstancing, bool useLightsPerObject, int renderingLayerMask)
+    //{
+    //    ExecuteCommands();
 
-        // Draw opaque geometries
-        var sortingSettings = new SortingSettings(camera);
-        sortingSettings.criteria = SortingCriteria.CommonOpaque;
+    //    // Draw opaque geometries
+    //    var sortingSettings = new SortingSettings(camera);
+    //    sortingSettings.criteria = SortingCriteria.CommonOpaque;
 
-        var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings);
-        drawingSettings.SetShaderPassName(1, litShaderTagId);
-        drawingSettings.enableDynamicBatching = enableDynamicBatching;
-        drawingSettings.enableInstancing = enableGPUInstancing;
+    //    var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings);
+    //    drawingSettings.SetShaderPassName(1, litShaderTagId);
+    //    drawingSettings.enableDynamicBatching = enableDynamicBatching;
+    //    drawingSettings.enableInstancing = enableGPUInstancing;
 
-        // Pass more per object data to shaders
-        PerObjectData lightsPerObjectFlags = useLightsPerObject ?
-                                             PerObjectData.LightData | PerObjectData.LightIndices :
-                                             PerObjectData.None;
+    //    // Pass more per object data to shaders
+    //    PerObjectData lightsPerObjectFlags = useLightsPerObject ?
+    //                                         PerObjectData.LightData | PerObjectData.LightIndices :
+    //                                         PerObjectData.None;
 
-        drawingSettings.perObjectData = PerObjectData.Lightmaps | PerObjectData.ShadowMask |
-                                        PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume |
-                                        PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume |
-                                        PerObjectData.ReflectionProbes | lightsPerObjectFlags;
+    //    drawingSettings.perObjectData = PerObjectData.Lightmaps | PerObjectData.ShadowMask |
+    //                                    PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume |
+    //                                    PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume |
+    //                                    PerObjectData.ReflectionProbes | lightsPerObjectFlags;
 
-        // Set allowed material render queue range
-        var filteringSettings = new FilteringSettings(
-            RenderQueueRange.opaque, renderingLayerMask: (uint)renderingLayerMask
-        );
+    //    // Set allowed material render queue range
+    //    var filteringSettings = new FilteringSettings(
+    //        RenderQueueRange.opaque, renderingLayerMask: (uint)renderingLayerMask
+    //    );
 
-        context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
+    //    context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
 
-        context.DrawSkybox(camera);
+    //    context.DrawSkybox(camera);
 
-        if (useColorTexture || useDepthTexture)
-        {
-            CopyAttachments();
-        }
+    //    if (useColorTexture || useDepthTexture)
+    //    {
+    //        CopyAttachments();
+    //    }
 
-        // Draw transparent geometries
-        sortingSettings.criteria = SortingCriteria.CommonTransparent;
-        drawingSettings.sortingSettings = sortingSettings;
-        filteringSettings.renderQueueRange = RenderQueueRange.transparent;
+    //    // Draw transparent geometries
+    //    sortingSettings.criteria = SortingCriteria.CommonTransparent;
+    //    drawingSettings.sortingSettings = sortingSettings;
+    //    filteringSettings.renderQueueRange = RenderQueueRange.transparent;
 
-        context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
-    }
+    //    context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
+    //}
 
     public void Draw(RenderTargetIdentifier src, RenderTargetIdentifier dst, bool isDepth = false)
     {
@@ -394,8 +406,10 @@ public partial class CameraRenderer
         return false;
     }
 
-    void CopyAttachments()
+    public void CopyAttachments()
     {
+        ExecuteCommands();
+
         if (useColorTexture)
         {
             cmd.GetTemporaryRT(
